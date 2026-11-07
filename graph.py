@@ -2,21 +2,25 @@ from langgraph.graph import MessagesState
 from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.checkpoint.memory import InMemorySaver
-from chains import programming_chain
+from chatbot import llm
+from prompts import programming_prompt
 
 def chatbot(state: MessagesState):
     # here state -> variable name and : MessagesState -> TypeHint, ye bhi hota hai python me
     # the state is a dictionary which contains -> "messages" : [....] -> we extract that and give it to 
-    # our llm/gemini
-    # gemini returns us response = AIMessage object
-    response = programming_chain.invoke({
+
+    # 1. format prompt using conversation history
+    formattedPrompt = programming_prompt.invoke({
         "history" : state["messages"]
     })
-    # we update that to our state and return it
+
+    # 2. call our llm/gemini returns us response = AIMessage object
+    response = llm.invoke(formattedPrompt)
+
+    # we update that to our state and return it to our graph
     return {
         "messages" : [response]
     }
-    # we are returning this output, because langGraph knows that when a new 
 
 graph_builder = StateGraph(MessagesState)
 graph_builder.add_node("chatbot", chatbot)
